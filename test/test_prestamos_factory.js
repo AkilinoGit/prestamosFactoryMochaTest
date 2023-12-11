@@ -3,6 +3,7 @@ const ganache = require('ganache-cli');
 const Web3 = require('web3');
 const web3 = new Web3(ganache.provider());
 const prestamosFactoryBuild = require ('../build/contracts/PrestamosFactory.json');
+const prestamoCursandoBuild = require ('../build/contracts/PrestamoCursando.json');
 
 
 //Test en distinto proyecto debido al conflicto de versión de web3 y su constructor
@@ -10,7 +11,6 @@ describe('Prestamos factory test', () => {
 
     before( async() => {  
         accounts = await web3.eth.getAccounts();
-        web3.set
         factory = await new web3.eth.Contract(prestamosFactoryBuild.abi)
             .deploy({data: prestamosFactoryBuild.evm.bytecode.object})
             .send({ from: accounts[0], gas: 6721975});
@@ -99,7 +99,7 @@ describe('Prestamos factory test', () => {
     });
 
     it('definir prestamo', async() => {
-        const result = await factory.methods.definirPrestamo(10,1000,10,10).send({from: accounts[0],
+        const result = await factory.methods.definirPrestamo(10,1000,2,10).send({from: accounts[0],
             gas: web3.utils.toHex(2000000)});
         const events = result.events;
         const eventoDefinido = events['PrestamoDefinido'];
@@ -124,16 +124,60 @@ describe('Prestamos factory test', () => {
 
     });
 
+    it('contratarPrestamo from another account', async() => {
+        try {
+            await factory.methods.contratarPrestamo(accounts[1],0).send({from: accounts[2]});
+            assert.fail(new TypeError('Error en dirección'));
+
+        } catch (error){
+            console.log(error.message) 
+
+        }
+    });
+
+    it('contratarPrestamo from another account', async() => {
+         await factory.methods.definirPrestamo(10,999999,10,10).send({from: accounts[0],
+            gas: web3.utils.toHex(2000000)});
+
+        try {
+            await factory.methods.contratarPrestamo(accounts[1],1).send({from: accounts[1]});
+            assert.fail(new TypeError('No hay suficientes fondos para el prestamo'));
+
+        } catch (error){
+            console.log(error.message) 
+        }
+    });
+
+    it('contratarPrestamo', async() => {
+        var result = await factory.methods.contratarPrestamo(accounts[1],0).send({from: accounts[1],
+            gas: web3.utils.toHex(2000000)});
+        var eventoDefinido = result.events['NuevoPrestamoCursando'];
+        assert.ok(eventoDefinido);
+        console.log(eventoDefinido);
+        result = await factory.methods.contratarPrestamo(accounts[2],0).send({from: accounts[2],
+             gas: web3.utils.toHex(2000000)});
+        eventoDefinido = result.events['NuevoPrestamoCursando'];
+        assert.ok(eventoDefinido);
+        console.log(eventoDefinido);
+
+    });
+
+    it('verContratos', async() => {
+        var contratos = await factory.methods.verContratos(accounts[1]).call({from: accounts[1]});
+        assert.equal(contratos.length,1);
+        contratos = await factory.methods.verContratos(accounts[2]).call({from: accounts[2]});
+        assert.equal(contratos.length,1);
+    });
+
+    it('eliminar contrato no finalizado', async() => {
+        try{
+            await factory.methods.eliminarPrestamoFinalizado(accounts[1],0).send({from: contratoEliminar});
+            assert.fail(new TypeError('Deuda pendiente'));
+            } catch (error){
+                console.log(error.message);
+            }
+    });
 
 
+    });
 
-
-
-
-
-    
-
-
-
-
-});

@@ -1,6 +1,4 @@
 
-
-//import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 //SafeMath.sol no aparece con npm install, importado manualmente 
 contract PrestamosFactory {
 
@@ -120,8 +118,10 @@ contract PrestamosFactory {
 
     }
 
-    function  eliminarPrestamoFinalizado(address user, address _finalizado, uint index) external {
-        require(msg.sender == _finalizado, "Los contratos se autoeliminan una vez finalizados");
+    function  eliminarPrestamoFinalizado(address user, uint index) external {
+        PrestamoCursando eliminar = prestamosCursando[user][index];
+        PrestamoCursando.State state = PrestamoCursando(eliminar).mostrarEstado();
+        require( state == PrestamoCursando.State.FINALIZADO , "Contrato no finalizado");
         //Se copia el ultimo elemento del array y se le cambia el índice
         prestamosCursando[user][index] = prestamosCursando[user][prestamosCursando[user].length - 1];
         prestamosCursando[user][index].setIndex(index);
@@ -206,6 +206,8 @@ contract PrestamoCursando {
     }
 
     function mostrarInfo() external view returns (InfoContrato memory){
+        require((msg.sender == entidadFinanciera || msg.sender == prestatario), "Top Secret");
+        
         InfoContrato memory infoContrato = InfoContrato({
             _direccion: address(this),
             _index: index,
@@ -220,6 +222,10 @@ contract PrestamoCursando {
         });
     
         return infoContrato;
+    }
+
+    function mostrarEstado() external view returns (State) {
+        return state;
     }
 
 
@@ -257,7 +263,7 @@ contract PrestamoCursando {
     }
 
     function eliminarContratoFinalizado() private {
-        PrestamosFactory(prestamosFactory).eliminarPrestamoFinalizado(prestatario, address(this), index); 
+        PrestamosFactory(prestamosFactory).eliminarPrestamoFinalizado(prestatario, index); 
     }
 
     //Numero de cuotas se mantiene

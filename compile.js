@@ -30,6 +30,7 @@ var input = {
     }
 }; 
 
+//ELIMINAR LICENCIA , COMPILADOR, E IMPORT YA QUE LA FORMA DE LEER EL CONTRTO ES COMO SI FUESE UNA EXTENSION DE SAFEMATH
 //pas 2  exportar para test
 const contractsCompiled = JSON.parse(solc.compile(JSON.stringify(input))).contracts['PRESTAMOS_FACTORY.sol'];
 
