@@ -1,4 +1,4 @@
-# <pre>             PRESTAMOS FACTORY<br>        MOCHA TEST  
+# <pre>             PRESTAMOS FACTORY<br>          MOCHA TEST  
                      
 ## COMPILACIÓN
 Test creados en otro proyecto a parte debido que estaba siguiendo la clase de Oriol y tenía conflictos con el proyecto debido
